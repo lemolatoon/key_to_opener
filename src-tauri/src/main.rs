@@ -1,12 +1,15 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod commands;
+
 use tauri::{CustomMenuItem, Manager, SystemTray, SystemTrayMenu, SystemTrayMenuItem};
 
-// Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
+use crate::commands::command1;
+
 #[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
+fn hello() {
+    println!("Hello from Rust!");
 }
 
 const MAIN_WINDOW_ID: &str = "main";
@@ -22,6 +25,7 @@ fn main() {
         .add_native_item(SystemTrayMenuItem::Separator)
         .add_item(settings);
     let system_tray = SystemTray::new().with_menu(tray_menu);
+
     tauri::Builder::default()
         .system_tray(system_tray)
         .on_system_tray_event(|app, event| match event {
@@ -32,11 +36,13 @@ fn main() {
                 "hide" => {
                     let handle = app.app_handle();
                     let Some(window) = handle.get_window(MAIN_WINDOW_ID) else { return };
-                    window.hide().unwrap();
+                    window.set_skip_taskbar(true).unwrap();
+                    window.minimize().unwrap();
                 }
                 "settings" => {
                     let handle = app.app_handle();
-                    if handle.get_window(MAIN_WINDOW_ID).is_some() {
+                    if let Some(window) = handle.get_window(MAIN_WINDOW_ID) {
+                        window.unminimize().unwrap();
                         return;
                     }
                     let id = MAIN_WINDOW_ID.to_string();
@@ -55,7 +61,14 @@ fn main() {
             },
             _ => {}
         })
-        .invoke_handler(tauri::generate_handler![greet])
+        .setup(|app| {
+            let handle = app.app_handle();
+            let window = handle.get_window(MAIN_WINDOW_ID).unwrap();
+            window.set_skip_taskbar(true).unwrap();
+            window.minimize().unwrap();
+            Ok(())
+        })
+        .invoke_handler(tauri::generate_handler![hello, command1])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
         .run(|_app_handle, event| match event {

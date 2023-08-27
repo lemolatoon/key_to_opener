@@ -1,5 +1,20 @@
 <script lang="ts">
+  import { invoke } from "@tauri-apps/api";
   import Greet from "./lib/Greet.svelte";
+
+  import { register } from "@tauri-apps/api/globalShortcut";
+  import { onMount } from "svelte";
+  onMount(async () => {
+    await register("Alt+Ctrl+Shift+F1", async () => {
+      await invoke("hello");
+      console.log("Alt+Ctrl+Shift+F1 was pressed");
+    });
+
+    await register("Alt+Ctrl+Shift+F6", async () => {
+      console.log("Alt+Ctrl+Shift+F6 was pressed");
+      await invoke("command1");
+    });
+  });
 </script>
 
 <main class="container">
