@@ -2,6 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod commands;
+mod notify;
 
 use tauri::{CustomMenuItem, Manager, SystemTray, SystemTrayMenu, SystemTrayMenuItem};
 
@@ -75,6 +76,13 @@ fn main() {
             tauri::RunEvent::ExitRequested { api, .. } => {
                 // Make sure to prevent the exit until the quit menu item is clicked
                 api.prevent_exit();
+                if let Err(_err) = notify::default()
+                    .summary("key to opener")
+                    .body("key to opener is still running background.")
+                    .show()
+                {
+                    // explicitly ignore error here
+                };
             }
             _ => {}
         });
