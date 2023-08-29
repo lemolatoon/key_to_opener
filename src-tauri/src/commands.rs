@@ -3,7 +3,7 @@ use cfg_if::cfg_if;
 use std::process::Command;
 use tauri;
 
-use crate::notify;
+use crate::{notify, process::vrchat_exist};
 
 mod world_id {
     pub const JAPAN_SHRINE: &str = "wrld_736bad27-4663-4346-a345-26e1e859d94e";
@@ -11,6 +11,9 @@ mod world_id {
 
 pub fn vrc_exec(world_id: &str) -> Result<()> {
     let scheme = format!("\"vrchat://launch?ref=vrchat.com?id={}\"", world_id);
+    if vrchat_exist() {
+        anyhow::bail!("VRChat is already running.");
+    }
     cfg_if! {
         if #[cfg(windows)] {
             Command::new("powershell")
@@ -21,7 +24,7 @@ pub fn vrc_exec(world_id: &str) -> Result<()> {
                 ])
                 .spawn()?;
         } else {
-            anyhow::bail!("This OS is not supported yet.");
+            anyhow::bail!("This OS is not supported yet.")
         }
     }
 

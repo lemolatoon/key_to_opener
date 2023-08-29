@@ -3,6 +3,7 @@
 
 mod commands;
 mod notify;
+mod process;
 
 use tauri::{CustomMenuItem, Manager, SystemTray, SystemTrayMenu, SystemTrayMenuItem};
 
